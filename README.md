@@ -329,9 +329,9 @@ originales, y tres de las cinco semillas convergieron a comprar y mantener. No h
 así que conservamos los hiperparámetros originales. El +15,3 % era en parte suerte de dos
 semillas: elegir el máximo entre 15 pruebas ruidosas sobreestima.
 
-Que las dos medianas coincidan hasta el decimal catorce (11,65080586 %) no es un error de
-copia: los modelos son distintos, pero en las dos configuraciones la semilla que queda en
-la mediana sale del mercado los mismos dos días y hace exactamente el mismo recorrido. Dicho
+Las dos medianas coinciden hasta el decimal catorce (11,65080586 %) aunque los modelos son
+distintos, porque en las dos configuraciones la semilla que queda en la mediana sale del
+mercado los mismos dos días y hace exactamente el mismo recorrido. Dicho
 de otro modo, la configuración ganadora se eligió por una semilla que casi no opera, lo cual
 refuerza lo que la sección 6 dice del óptimo local de `diferencial`.
 
@@ -613,7 +613,9 @@ recompensas.
 cuántas semillas hacen falta para detectar la diferencia que interesa. Con una dispersión
 de unos 40 puntos entre semillas en el tramo de prueba, cinco semillas no alcanzan para
 distinguir 10 o 15 puntos frente a comprar y mantener, y el bootstrap por bloques lo
-confirmó: ningún intervalo queda por encima de cero. Fijar ese tamaño de efecto desde el
+confirmó: ningún intervalo queda por encima de cero. Henderson et al. (2018) documentan
+ese mismo problema en *Deep RL*, donde dos grupos de cinco semillas del mismo algoritmo
+llegan a dar curvas estadísticamente distintas. Fijar ese tamaño de efecto desde el
 principio habría cambiado la pregunta, de "¿gana el agente?" a "¿con qué evidencia
 podríamos saberlo?".
 
@@ -629,9 +631,10 @@ política se fija antes de ver el beneficio de estar invertido, sin que se haya 
 aplicación a este problema?** En los casos del curso, como AlphaGo, el error es
 inequívoco y por eso funciona como motor del aprendizaje: una jugada mala se paga en la
 partida. Aquí el error y la suerte se confunden, porque un día afortunado basta para que
-una semilla parezca hábil. Desde la docencia, el *reward hacking* recuerda al estudiante
-que aprende a obtener la nota sin comprender el contenido: `aversion` y la versión 4
-cumplen su recompensa con un aprendizaje superficial. Diseñar la recompensa resultó ser
+una semilla parezca hábil. Desde la docencia, el *reward hacking*, que Amodei et al. (2016)
+describen como la optimización de un objetivo mal especificado, recuerda al estudiante que
+aprende a obtener la nota sin comprender el contenido: `aversion` y la versión 4 cumplen su
+recompensa con un aprendizaje superficial. Diseñar la recompensa resultó ser
 tan delicado como diseñar una evaluación.
 
 ## 8. Estructura
@@ -689,6 +692,11 @@ y la interpretación de los resultados fueron revisados por el equipo.
   *Nature, 518*, 529-533.
 - Akiba, T., Sano, S., Yanase, T., Ohta, T., & Koyama, M. (2019). Optuna: A next-generation
   hyperparameter optimization framework. *KDD '19*.
+- Amodei, D., Olah, C., Steinhardt, J., Christiano, P., Schulman, J., & Mané, D. (2016).
+  Concrete problems in AI safety. *arXiv:1606.06565*.
+- Henderson, P., Islam, R., Bachman, P., Pineau, J., Precup, D., & Meger, D. (2018). Deep
+  reinforcement learning that matters. *Proceedings of the AAAI Conference on Artificial
+  Intelligence, 32*(1).
 - Künsch, H. R. (1989). The jackknife and the bootstrap for general stationary
   observations. *The Annals of Statistics, 17*(3), 1217-1241.
 - Sutton, R. S., & Barto, A. G. (2018). *Reinforcement learning: An introduction* (2.ª ed.).
