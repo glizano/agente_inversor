@@ -591,6 +591,49 @@ más me sirvió fue tratar el entorno como código de producción, con pruebas a
 verifican que no se usa información del futuro y que la contabilidad cuadra. En este problema,
 la confianza en el resultado depende más de esas pruebas que del algoritmo.
 
+### Leonar Socarrás Molina
+
+**¿Cuál fue el resultado que más me sorprendió?** Que la configuración ganadora en
+validación se decidiera, en su mediana, por una semilla que casi no opera. PPO con
+`diferencial` y su versión ajustada con Optuna dan la misma mediana hasta el decimal
+catorce, porque en ambas la semilla central sale del mercado los mismos dos días y repite
+el recorrido de comprar y mantener. La mediana se eligió para protegerse de semillas
+extremas, y terminó premiando la cercanía al baseline. Es el mismo fenómeno que aparece con
+retornos compuestos, donde la media y el resultado típico se separan: el estadístico de
+resumen decide qué se considera aprender.
+
+**¿Qué decisión metodológica tuvo mayor impacto en el agente?** Medir siempre sobre el
+capital real y nunca sobre la recompensa. Esa separación entre lo que el agente optimiza y
+lo que se evalúa permitió reconocer el *reward hacking* de `aversion` y, después, probar la
+versión 4 sin tocar las métricas: la penalización por rotación existe solo en la señal de
+aprendizaje, y por eso su efecto se pudo leer con la misma regla que las demás
+recompensas.
+
+**¿Qué cambiaría si tuviera que repetir el experimento?** Calcularía antes de entrenar
+cuántas semillas hacen falta para detectar la diferencia que interesa. Con una dispersión
+de unos 40 puntos entre semillas en el tramo de prueba, cinco semillas no alcanzan para
+distinguir 10 o 15 puntos frente a comprar y mantener, y el bootstrap por bloques lo
+confirmó: ningún intervalo queda por encima de cero. Fijar ese tamaño de efecto desde el
+principio habría cambiado la pregunta, de "¿gana el agente?" a "¿con qué evidencia
+podríamos saberlo?".
+
+**¿Qué comportamiento del agente no logré explicar completamente?** Por qué la versión 4 se
+estaciona en 50 % y no en 100 %. Entrar al 100 % cuesta 0,25 puntos más de penalización que
+entrar al 50 %, una sola vez por episodio, mientras que quedarse en 50 % con la recompensa
+`diferencial` cede la mitad de cada subida, unos 10 puntos en un año alcista. La asimetría
+del costo de entrada es real, aunque su tamaño no alcanza para justificar ese óptimo. Queda
+la sospecha de que la penalización vuelve demasiado costosa la exploración temprana y la
+política se fija antes de ver el beneficio de estar invertido, sin que se haya verificado.
+
+**¿Cuál fue la principal diferencia entre lo aprendido en Reinforcement Learning y su
+aplicación a este problema?** En los casos del curso, como AlphaGo, el error es
+inequívoco y por eso funciona como motor del aprendizaje: una jugada mala se paga en la
+partida. Aquí el error y la suerte se confunden, porque un día afortunado basta para que
+una semilla parezca hábil. Desde la docencia, el *reward hacking* recuerda al estudiante
+que aprende a obtener la nota sin comprender el contenido: `aversion` y la versión 4
+cumplen su recompensa con un aprendizaje superficial. Diseñar la recompensa resultó ser
+tan delicado como diseñar una evaluación.
+
 ## 8. Estructura
 
 ```
