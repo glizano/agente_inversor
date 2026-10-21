@@ -47,7 +47,7 @@ uv run pytest -q                      # 18 pruebas: entorno, datos, métricas y 
 uv run --with jupyter jupyter nbconvert --to notebook --execute --inplace notebooks/eda.ipynb
 
 uv run agente-inversor inspeccionar   # datos, tramos, estado, acciones
-uv run agente-inversor baselines --tramo validacion
+uv run agente-inversor baselines --tramo validacion   # baselines en validación
 
 scripts/comparar.sh 2                 # 30 corridas (2 en paralelo), cerca de 30 min en CPU
 uv run agente-inversor tune    --config configs/ppo.yaml --recompensa diferencial
@@ -55,12 +55,13 @@ uv run agente-inversor entrenar --config configs/ppo_tuned.yaml --sufijo _tuned
 uv run agente-inversor entrenar --config configs/ppo.yaml --recompensa diferencial_rotacion
 uv run agente-inversor resumen        # tabla de validación
 
-uv run agente-inversor prueba  --config configs/ppo.yaml --recompensa diferencial
+uv run agente-inversor prueba  --config configs/ppo.yaml --recompensa diferencial   # agente y baselines
 uv run agente-inversor prueba  --config configs/ppo.yaml --recompensa diferencial \
                                --tramo prueba_extendida   # segunda prueba, 2018 a 2025
 uv run python scripts/graficar.py
 uv run python scripts/analisis_recompensas.py   # costos y posiciones por recompensa, en validación
 uv run python scripts/analisis_rigor.py         # rebalanceo e intervalos de confianza (sección 6)
+uv run python scripts/sensibilidad_costos.py    # resultado con costos de 0 % a 0,5 % (sección 6)
 
 # Solo si se quiere volver a bajar la serie de Yahoo Finance (el CSV ya está en datos/)
 uv run --no-project --with yfinance python scripts/descargar_datos.py
@@ -78,6 +79,10 @@ prueba y exige que el retorno, la máxima caída, las operaciones y la curva de 
 coincidan con `resultados/prueba.json`. Al reentrenar en otra máquina los
 números pueden variar levemente por diferencias de versión de PyTorch.
 
+El comando `prueba` también evalúa los baselines (comprar y mantener, 50 % fijo, efectivo y
+el agente aleatorio) en el mismo tramo y con los mismos costos, y los guarda junto al agente en
+`resultados/prueba.json` o `resultados/prueba_extendida.json`.
+
 ## 1. Formulación del problema
 
 **Datos.** Cierre diario de GOOGL del 22 de mayo de 2009 al 29 de agosto de 2018 (2.335
@@ -85,8 +90,9 @@ días hábiles), el conjunto que trae `gym-anytrading`, la librería de entornos
 incluida en la base del curso. Para la segunda prueba (sección 5) usamos el cierre ajustado de
 GOOGL de Yahoo Finance hasta el 31 de diciembre de 2025, guardado en
 `datos/GOOGL_yahoo_2018-07_2025-12.csv`. En los 42 días que comparten, las dos fuentes
-difieren en un factor constante de 20,19 (la división de acciones de 2022, que Yahoo ya
-ajusta), así que los retornos son idénticos y la serie continúa sin salto.
+difieren en un factor constante de 20,19 (la división de acciones 20 a 1 de 2022 y el ajuste
+por los dividendos que Alphabet paga desde 2024, que Yahoo aplica al cierre ajustado), así
+que los retornos son idénticos y la serie continúa sin salto.
 
 **Procedencia y licencia.** La serie principal es `STOCKS_GOOGL.csv`, distribuida dentro de
 `gym-anytrading` 2.0.0 (licencia MIT): 2.335 velas diarias con fecha, apertura, máximo,
@@ -474,12 +480,14 @@ cual es compatible con haber evitado uno o dos días malos por azar.
   es de 0,1 puntos o menos en la prueba y de 1,3 a 1,6 puntos en los siete años de la
   segunda prueba (semillas 0 y 1 y el baseline de 50 % fijo). Las semillas que solo usan
   0 % y 100 % no cambian. Ninguna conclusión depende de este detalle.
-- **Sensibilidad al costo.** scripts/sensibilidad_costos.py recalcula el capital de las 
-  cinco semillas con costos de 0 % a 0,5 %, sin reentrenar, porque el estado no incluye el 
-  costo y las posiciones no cambian. Con costo cero la mediana del agente sigue por debajo de 
-  comprar y mantener (+38,5 % frente a +50,2 % en la prueba; +298,2 % frente a +398,7 % en 
-  la segunda prueba), así que la distancia la explican las decisiones del agente y no los costos. 
-  Con 0,5 % la semilla 2 pasa a perder 31,9 % en la segunda prueba.
+- **Sensibilidad al costo.** `scripts/sensibilidad_costos.py` recalcula el capital de las
+  cinco semillas con costos de 0 % a 0,5 %, sin reentrenar, porque el estado no incluye el
+  costo y las posiciones no cambian (`resultados/sensibilidad_costos.csv`). Con costo cero la
+  mediana del agente sigue por debajo de comprar y mantener: +38,5 % frente a +50,2 % en la
+  prueba, y +298,2 % frente a +398,7 % en la segunda prueba. En la prueba los costos explican
+  casi nada de la distancia (1 de unos 12,5 puntos); en la segunda prueba, cerca de un tercio
+  (unos 54 de 154). El resto lo explican las decisiones del agente. Con 0,5 % la semilla 2
+  pasa a perder 31,9 % en la segunda prueba.
 - **Indicadores solo de precio.** Si el precio diario ya incorpora la información pública,
   hay poca señal que extraer de él.
 - **Cinco semillas** alcanzan para ver que la dispersión es grande, no para estimar bien
@@ -714,6 +722,7 @@ datos/                   # GOOGL de Yahoo Finance, 2018 a 2025, para la segunda 
 notebooks/eda.ipynb      # análisis exploratorio de los datos y auditoría de lookahead
 scripts/analisis_recompensas.py  # costos y posiciones de las 35 corridas en validación
 scripts/analisis_rigor.py        # rebalanceo no cobrado e intervalos de confianza
+scripts/sensibilidad_costos.py   # resultado con costos de 0 % a 0,5 %, sin reentrenar
 scripts/comparar.sh      # la rejilla completa de corridas
 scripts/descargar_datos.py  # baja el CSV de datos/ (yfinance)
 scripts/graficar.py      # figuras del informe
